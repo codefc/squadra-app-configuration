@@ -1,0 +1,1 @@
+# squadra-app-configuration
