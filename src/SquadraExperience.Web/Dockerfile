@@ -1,13 +1,13 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch-slim AS base
+FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
+FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
-COPY ["SquadraExperience.Web/SquadraExperience.Web.csproj", "SquadraExperience.Web/"]
-RUN dotnet restore "SquadraExperience.Web/SquadraExperience.Web.csproj"
-COPY . .
-WORKDIR "/src/SquadraExperience.Web"
+COPY ["SquadraExperience.Web.csproj", "."]
+RUN dotnet restore "SquadraExperience.Web.csproj"
+COPY . ./
+WORKDIR "/src/."
 RUN dotnet build "SquadraExperience.Web.csproj" -c Release -o /app
 
 FROM build AS publish

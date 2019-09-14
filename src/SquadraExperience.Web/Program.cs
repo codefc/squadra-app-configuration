@@ -7,6 +7,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.AppConfiguration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace SquadraExperience.Web
 {
@@ -18,7 +20,7 @@ namespace SquadraExperience.Web
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+            WebHost.CreateDefaultBuilder(args)            
                 .UseStartup<Startup>();
     }
 }

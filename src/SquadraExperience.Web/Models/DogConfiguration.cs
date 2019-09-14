@@ -7,6 +7,6 @@ namespace SquadraExperience.Web.Models
 {
     public class DogConfiguration
     {
-        public string Url { get; set; }
+        public string DogName { get; set; }
     }
 }
