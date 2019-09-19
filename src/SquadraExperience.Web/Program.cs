@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Azure.AppConfiguration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using System;
 
 namespace SquadraExperience.Web
 {
@@ -20,7 +14,18 @@ namespace SquadraExperience.Web
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)            
+            WebHost.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration((context, config) => {
+                IConfigurationRoot settings = config.Build();
+
+                config.AddAzureAppConfiguration(option => {
+                    option.Connect("SUA CONNECTION STRING")
+                        .ConfigureRefresh(refresh => {
+                            refresh.Register("SquadraExperience:Dog:DogName", context.HostingEnvironment.EnvironmentName)
+                            .SetCacheExpiration(TimeSpan.FromSeconds(5));
+                        });
+                });
+            })
                 .UseStartup<Startup>();
     }
 }
