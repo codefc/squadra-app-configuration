@@ -459,6 +459,8 @@ Os comentários descrevem bem os passos que serão feitos. Mas de forma simples,
 
 Tudo pronto. Agora é só executar e testar.
 
+> A connection string foi utilizada **in-line** para facilitar o exemplo. Porém é uma boa prática mantê-la em uma configuração de **Secrets** para o ambiente de desenvolvimento e utilizar recursos como variáveis de ambiente em seu processo de **continous integration**.
+
 # Execução da aplicação
 
 Com as configurações atuais da aplicação, basta executar (F5) para ver o resultado para o ambiente local:
