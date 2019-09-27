@@ -32,14 +32,13 @@ namespace SquadraExperience.Web
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.Configure<DogConfiguration>(Configuration.GetSection("SquadraExperience:Dog"));
+            services.Configure<DogConfiguration>(Configuration.GetSection("SQLNorte:Dog"));
             services.AddSingleton(factory =>
             {
                 return RestService.For<IDogService>("https://dog.ceo/api");
             });
 
-            DogConfiguration dogConf = new DogConfiguration();
-            Configuration.GetSection("Dog").Bind(dogConf);
+            services.Configure<DogConfiguration>(Configuration.GetSection("SquadraExperience:Dog"));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }

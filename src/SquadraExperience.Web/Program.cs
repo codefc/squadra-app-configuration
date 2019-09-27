@@ -19,7 +19,7 @@ namespace SquadraExperience.Web
                 IConfigurationRoot settings = config.Build();
 
                 config.AddAzureAppConfiguration(option => {
-                    option.Connect("SUA CONNECTION STRING")
+                    option.Connect("ADICIONE_SUA_CONNECTION_STRING")
                         .ConfigureRefresh(refresh => {
                             refresh.Register("SquadraExperience:Dog:DogName", context.HostingEnvironment.EnvironmentName)
                             .SetCacheExpiration(TimeSpan.FromSeconds(5));
