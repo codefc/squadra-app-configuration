@@ -1,6 +1,16 @@
+# ATUALIZAÇÃO
+
+- **28/09/2019**
+  - Este repositório também contempla uma apresentação feita para a comunidade de Belo Horizonte, no evento DevOps Days BH.
+  - Adição de funcionalidades de Feature Toggle.
+  - Adição da versão da apresentação do evento DevOps Days BH.
+
+  > **Importante**: O namespace e nome do projeto tem como prefixo **SquadraExperience**, que foi a motivação para criação deste repositório. Porém, todas as referências das configurações fora atualizadas para o evento DevOps Days BH com o acréscimo do Feature Toggle.
+
 # Squadra Experience 2019
 
 Este repositório é um complemento da apresentação que foi feita no evento **Squadra Experience** que aconteceu no dia 14/09/2019.
+
 
 O objetivo é apresentar um conceito voltado para o gerenciamento de configurações das nossas aplicações de forma segura seguindo uma das boas práticas propostas pelo [The Twelve-factor Factor](http://12factor.net/pt-br).
 
@@ -78,6 +88,12 @@ Se preferir pela linha de comando, no diretório onde encontra-se o arquivo de p
 
 ```bash
 dotnet add package Microsoft.Azure.AppConfiguration.AspNetCore --version 2.0.0-preview-009470001-12
+```
+
+Também instale o pacote para utilização da funcionalidade de **Featura Toggle**.
+
+```bash
+dotnet add package Microsoft.FeatureManagement.AspNetCore --version 1.0.0-preview-009000001-1251
 ```
 
 ## Models
@@ -159,6 +175,11 @@ public class HomeController : Controller
             return View();
         }
 
+        [FeatureGate("Beta")]
+        public IActionResult About()
+        {
+            return View();
+        }
         // Removi alguns métodos aquin na documentação para facilitar o entendimento. Não será necessário removê-los da controller.
     }
 
@@ -179,6 +200,8 @@ As propriedades acima precisam ser iniciadas e, portanto, estamos recebendo no c
   - **ViewBag.Dog = _dogConfig.DogName;** - definimos uma propriedade dinâmica através do **ViewBag** para que a View possa "receber" o nome do cachorro.
   - **ViewBag.ImageUrl = dog.Message** - seguindo o padrão da propriedade anerior, estamos enviando para a view a URL da imagem do cachorro.
   - **ViewBag.Env = _hosting.EnvironmentName;** - neste momento estamos obtendo as informações do ambiente que no caso é o seu nome, e enviamos para a view.
+
+- **About** - Este método está anotado com um atributo chamado **FeatureGate** que recebe como parâmetro o nome de um toggle, no caso Beta. Ao acessar esta rota, por conter o atributo, será analisado no App Configuration se o toggle de nome Beta encontra-se ON. Se estiver ON, então a roda será acessda. Caso contrário será retornado o código 404 not found.
 
 ## Views
 
@@ -211,12 +234,21 @@ Observe o uso do **ViewBag** para recuperação do nome do cachorro e da sua res
 
 ### Views/Shared/_Layout.cshtml
 
+No topo do arquivo adicione:
+
+```html
+
+@addTagHelper *, Microsoft.FeatureManagement.AspNetCore
+
+```
+Em seguida edite o trecho em **header** conforme o código abaixo:
+
 ```html
 
 <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm text-white navbar-dark border-bottom box-shadow mb-3 ">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Squadra Experience</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DevOps Days BH</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -226,9 +258,11 @@ Observe o uso do **ViewBag** para recuperação do nome do cachorro e da sua res
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        <feature name="Beta">
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="About">About</a>
+                            </li>
+                        </feature>
                     </ul>
                 </div>
                 <h1 class="float-right"><span class="badge badge-warning">@ViewBag.Env</span></h1>
@@ -238,7 +272,9 @@ Observe o uso do **ViewBag** para recuperação do nome do cachorro e da sua res
 
 ```
 
-Neste arquivo a alteração será feita, apenas, no conteúdo da tag **Header**. Neste ponto adcionamos um título **Squadra Experience** e um *badge* que exibirá em qual ambiente encontra-se a aplicação.
+Neste arquivo a alteração será feita, apenas, no conteúdo da tag **Header**. Neste ponto adcionamos um título **DevOps Days BH** e um *badge* que exibirá em qual ambiente encontra-se a aplicação.
+
+Observe também a tag **feature**. Esta é uma **TagHelper** do ASP.Net MVC adicionada através do pacote de Feature Toggle mencionado anteriormente. O que irá acontecer com esta tag é que somente será exibida a opção **About** caso o **Toggle Beta** estiver **On**(Ligada);
 
 ## Startup.cs
 
@@ -251,8 +287,9 @@ Na classe **startup.cs** terá apenas duas alterações.
 Adicione as seguintes linhas antes da linha **services.AddMvc()...**:
 
 ```csharp
+services.AddFeatureManagement(); // Feature Toggle
 
-services.Configure<DogConfiguration>(Configuration.GetSection("SquadraExperience:Dog"));
+services.Configure<DogConfiguration>(Configuration.GetSection("DevOpsBH:Dog"));
 services.AddSingleton(factory =>
             {
                 return RestService.For<IDogService>("https://dog.ceo/api");
@@ -264,7 +301,7 @@ services.AddSingleton(factory =>
 
 ### Método Configure App
 
-No método Configure App devemos apenas adicionar uma linha antes de ***app.UseMvc(...)**:
+No método Configure App devemos apenas adicionar uma linha antes de **app.UseMvc(...)**:
 
 ```csharp
 
@@ -331,23 +368,34 @@ Criado o recurso é hora de criar nossa primeira configuração.
 
 - Serão necessárias três configurações
   - **Ambiente de desenvolvimento**:
-    - **Key**: SquadraExperience:Dog:DogName
+    - **Key**: DevOpsBH:Dog:DogName
     - **Value**: akita
     - **Label**: dev
   - **Ambiente de produção**:
-    - **Key**: SquadraExperience:Dog:DogName
+    - **Key**: DevOpsBH:Dog:DogName
     - **Value**: chow
     - **Label**: prd
   - **Ambiente de local**:
-    - **Key**: SquadraExperience:Dog:DogName
+    - **Key**: DevOpsBH:Dog:DogName
     - **Value**: bouvier
     - **Label**: *Deixe em branco*
 
 ![Configuration](./assets/configexplorer3.png)
 
-Ao final das configurações você deve ter uma listagem da seguinte forma:
+Agora adicionaremos um Toggle. Acesso o menu Feature Manager:
 
-![Configurations](./assets/configexplorer4.png)
+![Configuration](./assets/featuremanager1.png)
+
+Em seguida, clique no botão Add e crie o toggle:
+
+- **Key** - Beta
+- **Off** - opção que deve permanecer marcada
+
+O restante das opções não será necessário configurar.
+
+![Feature Toggle](./assets/featuremanager2.png)
+
+![Feature Toggle](./assets/featuremanager3.png)
 
 ### IMPORTANTE
 
@@ -365,7 +413,7 @@ No caso do arquivo padrão de configurações, o appsettings.json, teríamos a m
 
 ```
 
-Neste caso, não informei como configurações o **SquadraExperience**. Pode parecer estranho no primeiro momento, mas de acordo com alguns testes que efetuei, o texto **SquadraExperience** funciona como uma espécie de filro na busca das configurações. Sendo assim, todas as configurações desta aplicação deverá possuir como prefixo o valor **SquadraExperience:** para obtenção de uma configuração em "formato de classe".
+Neste caso, não informei como configurações o **DevOpsBH**. Pode parecer estranho no primeiro momento, mas de acordo com alguns testes que efetuei, o texto **DevOpsBH** funciona como uma espécie de filro na busca das configurações. Sendo assim, todas as configurações desta aplicação deverá possuir como prefixo o valor **DevOpsBH:** para obtenção de uma configuração em "formato de classe".
 
 Por que o formato de classe? Se observar nas configurações na classe **Startup.cs**, obtivemos uma **Section** e abstraímos os seus valores em uma classe "options" denominada **DogConfiguration**. Mas como funcionam as sections e por que o formato de string separado por dois pontos ":"?
 
@@ -403,7 +451,7 @@ Neste segundo exemplo também recupero os valores de uma section, porém
 adicionando um "filtro" com o nome da aplicação para obtenção no App Config na Azure
 */
 DogConfiguration dogConf = new DogConfiguration();
-Configuration.GetSection("SquadraExperience:Dog").Bind(dogConf); 
+Configuration.GetSection("DevOpsBH:Dog").Bind(dogConf); 
 
 ```
 
@@ -444,9 +492,9 @@ namespace SquadraExperience.Web
                 config.AddAzureAppConfiguration(option => { // utilizando o método de extensão para adicionar as configurações do App Configuration
                     option.Connect("SUA CONNECTION STRING") // Conectando em um connection string no recurso da Azure
                         .ConfigureRefresh(refresh => { // Configurando o refresh das configurações
-                            refresh.Register("SquadraExperience:Dog:DogName", context.HostingEnvironment.EnvironmentName)
+                            refresh.Register("DevOpsBH:Dog:DogName", context.HostingEnvironment.EnvironmentName)
                             .SetCacheExpiration(TimeSpan.FromSeconds(5)); // Determinando que o cache das configurações será de 5 segundos e será analisada a configuração DogName para um determinado ambiente
-                        });
+                        }).UseFeatureFlags(); //habilitando o feature toggle
                 });
             })
                 .UseStartup<Startup>();
@@ -455,7 +503,7 @@ namespace SquadraExperience.Web
 
 ```
 
-Os comentários descrevem bem os passos que serão feitos. Mas de forma simples, através da *connection string* a aplicação vai se conectar ao **App Configuration** na Azure e, além disso, vai monitorar a cada 5 segundos qualquer alteração feita no **DogName** da **Section** **SquadraExperience:Dog**.
+Os comentários descrevem bem os passos que serão feitos. Mas de forma simples, através da *connection string* a aplicação vai se conectar ao **App Configuration** na Azure e, além disso, vai monitorar a cada 5 segundos qualquer alteração feita no **DogName** da **Section** **DevOpsBH:Dog**.
 
 Tudo pronto. Agora é só executar e testar.
 
@@ -507,7 +555,7 @@ A aplicação conseguirá diferenciar as configurações porque no arquivo **Pro
  Observe o  uso do EnvironmenteName. 
   O valor desta variável é determinado pela variável ambiente ASPNETCORE_ENVIRONMENT
 */
-refresh.Register("SquadraExperience:Dog:DogName", context.HostingEnvironment.EnvironmentName)
+refresh.Register("DevOpsBH:Dog:DogName", context.HostingEnvironment.EnvironmentName)
 
 ```
 
@@ -519,6 +567,8 @@ Faça testes clicando nos botões para obtenção das imagens.
 
 Além disso, modifique as configurações para cada ambiente, alterando o valor de **DogName**, no App Config diretamente no portal da Azure. Em seguida, volte na aplicação do respectivo ambiente em que alterou a configuração, atualize a página e pronto!
 
+Tente habilitar o Toggle Beta criado anteriormente. Você irá percever a adição de um novo menu, About, que dará acesso a uma nova página.
+
 Para saber quais os nomes de cachorro disponíveis na API acesse: [https://dog.ceo/dog-api/breeds-list](https://dog.ceo/dog-api/breeds-list).
 
 
@@ -526,6 +576,8 @@ Para saber quais os nomes de cachorro disponíveis na API acesse: [https://dog.c
 
 Esta implementação traz muita flexibilidade já que não há a necessidade de recompilar a aplicação havendo alguma necessidade de mudança em alguma configuração.
 
-O Azure App Configuration ainda encontra-se em preview mas possui muitos outros recursos interessantes, como o uso de **Feature Toggles**.
+O Azure App Configuration ainda encontra-se em preview mas possui muitos outros recursos interessantes, como o uso de **Feature Toggles**, como mencionado neste repositório e, através deste temos a possiblidade de modificar o comportamento da aplicação em tempo de execução.
+
+Para saber mais sobre Feature Toggle, acesse: [https://codefc.com.br/feature-toggle-parte-1/](https://codefc.com.br/feature-toggle-parte-1/)
 
 Para saber mais, acesse: [https://docs.microsoft.com/en-us/azure/azure-app-configuration/](https://docs.microsoft.com/en-us/azure/azure-app-configuration/)

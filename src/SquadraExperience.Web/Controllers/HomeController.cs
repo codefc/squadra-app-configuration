@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement.Mvc;
 using SquadraExperience.Web.Models;
 using SquadraExperience.Web.Service;
 
@@ -36,6 +37,13 @@ namespace SquadraExperience.Web.Controllers
         }
 
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+
+        [FeatureGate("Beta")]
+        public IActionResult About()
         {
             return View();
         }

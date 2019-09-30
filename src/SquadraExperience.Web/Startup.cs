@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using SquadraExperience.Web.Models;
 using SquadraExperience.Web.Service;
+using Microsoft.FeatureManagement;
 
 namespace SquadraExperience.Web
 {
@@ -32,13 +33,14 @@ namespace SquadraExperience.Web
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.Configure<DogConfiguration>(Configuration.GetSection("SQLNorte:Dog"));
+            services.AddFeatureManagement();
+
+            services.Configure<DogConfiguration>(Configuration.GetSection("DevOpsBH:Dog"));
+
             services.AddSingleton(factory =>
             {
                 return RestService.For<IDogService>("https://dog.ceo/api");
             });
-
-            services.Configure<DogConfiguration>(Configuration.GetSection("SquadraExperience:Dog"));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
